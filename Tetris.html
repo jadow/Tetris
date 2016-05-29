@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Javascript Tetris</title>
+  <style>
+  
+	#canvas   { display: inline-block; vertical-align: top; box-shadow: 10px 10px 10px #999; border: 2px solid #333; }
+	@media screen and (min-width: 0px) and (min-height: 0px)  { #canvas { width: 100px; height: 200px; } } /* 10px chunks */
+	@media screen and (min-width: 300px) and (min-height: 500px)  { #canvas { width: 200px; height: 400px; } } /* 20px chunks */
+	@media screen and (min-width: 400px) and (min-height: 700px)  { #canvas { width: 300px; height: 600px; } } /* 30px chunks */
+	@media screen and (min-width: 500px) and (min-height: 900px)  { #canvas { width: 400px; height: 800px; } } /* 40px chunks */
+
+   
+  </style>
+</head>
+
+<body>
+	<canvas id="canvas" width="400" height="800" >
+	Your browser does not support the HTML5 canvas tag.
+	</canvas>
+  
+	<script>
+	canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
+	var nx = 10;
+	var ny = 20;
+	var hy = canvas.height;
+	var hx = canvas.width;
+	var height = hy / ny;
+	var width = hx / nx;
+	var map; //[y][x]
+	
+	map = new Array(ny);
+	for(var i=0; i < ny ; i++) {
+		map[i] = new Array(nx);
+		for(var j =0; j < nx; j++) {
+			map[i][j] = {occupied : false, colour : 'white'};
+		}
+	}
+	
+	map[0][0].colour = 'red';
+	map[0][1].colour = 'red';
+	map[0][2].colour = 'red';
+	map[1][0].colour = 'red';
+	map[1][2].colour = 'red';
+	map[2][0].colour = 'red';
+	map[2][1].colour = 'red';
+	map[2][2].colour = 'red';
+	
+	map[0][0].occupied = true;
+	map[0][1].occupied = true;
+	map[0][2].occupied = true;
+	map[1][0].occupied = true;
+	map[1][2].occupied = true;
+	map[2][0].occupied = true;
+	map[2][1].occupied = true;
+	map[2][2].occupied = true;
+	
+	drawMap(ctx,nx,ny,map);
+	
+	////////////////////////////////////////////////////
+	// EXCEPTIONS 
+	////////////////////////////////////////////////////
+	
+	function addExceptions()
+	{
+		document.addEventListener('keydown', keydown, false);
+		window.addEventListener('resize', resize, false);
+	}
+	
+	function keydown(event) {
+		console.log(event.keyCode);
+	}
+	
+	function resize(event){
+		
+	}
+	
+	////////////////////////////////////////////////////
+	// MAPPING 
+	////////////////////////////////////////////////////
+	function clearMap(map, nx, ny) {
+		for(var i=0; i < ny ; i++) {
+			for(var j =0; j < nx; j++) {
+				map[i][j].occupied = false;
+				map[i][j].colour = 'white';
+			}
+		}
+	}
+	
+	function clearLine(map,ny ,y, lines) s{
+		for(var i=y; i < ny; i++) {
+			if(i+ lines < nx) {
+				map[i] = map[i+lines];
+			}
+			else
+			{
+				map[i] = new Array(nx);
+				for(var j =0; j < nx; j++) {
+					map[i][j] = {occupied : false, colour : 'white'};
+				}
+			}
+		}
+	}
+	
+	function isOccupied(map, x, y, ny , nx) {
+		if(y < ny && x < nx) {
+			return map[y][x].occupied;
+		}
+	}
+	
+	////////////////////////////////////////////////////
+	// DISPLAY 
+	////////////////////////////////////////////////////	
+	function drawMap(ctx, nx, ny, map) {
+		ctx.clearRect(0, 0, hx, hy);
+		for(var i=0; i < ny ; i++) {
+			for(var j =0; j < nx; j++) {
+				if(map[i][j].occupied) {
+					drawBox(ctx,i,j,map[i][j].colour);
+				}
+			}
+		}
+	}
+	
+	// (0,0) is top left.
+	// i would prefer it to be bottom left
+	//hence ny-1-y instead of y
+	function drawBox (ctx, x, y, colour) {
+		ctx.fillStyle = colour;
+		ctx.fillRect(x*width, (ny-1-y)*height, width, height );
+		ctx.strokeRect(x*width, (ny-1-y)*height, width, height );
+	}
+	
+	</script>
+  
+</body>
+</html>
