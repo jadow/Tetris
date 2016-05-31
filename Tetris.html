@@ -20,6 +20,18 @@
 	</canvas>
   
 	<script>
+	////////////////////////////////////////////////////
+	// INIT 
+	////////////////////////////////////////////////////
+	
+	var s = { blocks : [0x1320, 0x6300, 0x2640, 0x0630], colour : 'red'};
+	var z = { blocks : [0x2310, 0x3600, 0x4620, 0x0360], colour : 'orange'};
+	var t = { blocks : [0x0720, 0x2320, 0x2700, 0x2620], colour : 'yellow'};
+	var j = { blocks : [0x1700, 0x3110, 0x7400, 0x2230], colour : 'green'};
+	var l = { blocks : [0x7100, 0x3220, 0x4700, 0x1130], colour : 'purple'};
+	var o = { blocks : [0x3300, 0x3300, 0x3300, 0x3300], colour : 'blue'};
+	var i = { blocks : [0x2222, 0x0F00, 0x4444, 0x00F0], colour : 'violet'};
+	
 	canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var nx = 10;
@@ -31,33 +43,25 @@
 	var map; //[y][x]
 	
 	map = new Array(ny);
-	for(var i=0; i < ny ; i++) {
-		map[i] = new Array(nx);
-		for(var j =0; j < nx; j++) {
-			map[i][j] = {occupied : false, colour : 'white'};
+	for(var y=0; y < ny ; y++) {
+		map[y] = new Array(nx);
+		for(var x =0; x < nx; x++) {
+			map[y][x] = {occupied : false, colour : 'white'};
 		}
 	}
+
+	loadingScreen();
 	
-	map[0][0].colour = 'red';
-	map[0][1].colour = 'red';
-	map[0][2].colour = 'red';
-	map[1][0].colour = 'red';
-	map[1][2].colour = 'red';
-	map[2][0].colour = 'red';
-	map[2][1].colour = 'red';
-	map[2][2].colour = 'red';
-	
-	map[0][0].occupied = true;
-	map[0][1].occupied = true;
-	map[0][2].occupied = true;
-	map[1][0].occupied = true;
-	map[1][2].occupied = true;
-	map[2][0].occupied = true;
-	map[2][1].occupied = true;
-	map[2][2].occupied = true;
-	
-	drawMap(ctx,nx,ny,map);
-	
+	function loadingScreen() {
+		putBlockOnMap(map, s.blocks[0], 2, 1, s.colour);
+		putBlockOnMap(map, z.blocks[0], 4, 0, z.colour);
+		putBlockOnMap(map, t.blocks[0], 2, -1, i.colour);
+		putBlockOnMap(map, j.blocks[1], 0, 0, j.colour);
+		putBlockOnMap(map, l.blocks[0], 6, 0, l.colour);
+		putBlockOnMap(map, o.blocks[1], 5, 2, o.colour);
+		putBlockOnMap(map, i.blocks[0], 6, 1, i.colour);
+		drawMap(ctx,nx,ny,map);
+	}
 	////////////////////////////////////////////////////
 	// EXCEPTIONS 
 	////////////////////////////////////////////////////
@@ -80,24 +84,24 @@
 	// MAPPING 
 	////////////////////////////////////////////////////
 	function clearMap(map, nx, ny) {
-		for(var i=0; i < ny ; i++) {
-			for(var j =0; j < nx; j++) {
-				map[i][j].occupied = false;
-				map[i][j].colour = 'white';
+		for(var y=0; y < ny ; y++) {
+			for(var x =0; x < nx; x++) {
+				map[y][x].occupied = false;
+				map[y][x].colour = 'white';
 			}
 		}
 	}
 	
-	function clearLine(map,ny ,y, lines) s{
-		for(var i=y; i < ny; i++) {
-			if(i+ lines < nx) {
-				map[i] = map[i+lines];
+	function clearLine(map,ny ,y, n) {
+		for(var line = y; line < ny; line++) {
+			if(line+ n < nx) {
+				map[line] = map[line+n];
 			}
 			else
 			{
-				map[i] = new Array(nx);
-				for(var j =0; j < nx; j++) {
-					map[i][j] = {occupied : false, colour : 'white'};
+				map[line] = new Array(nx);
+				for(var column =0; column < nx; column++) {
+					map[line][column] = {occupied : false, colour : 'white'};
 				}
 			}
 		}
@@ -109,6 +113,33 @@
 		}
 	}
 	
+	function putBlockOnMap(map, block, x, y, colour) {
+	//require some fixing
+		for(var i=3; i >= 0; i--) {
+			if(block & 8) {
+				console.log(y+i, x+3);
+				map[y+i][x+3].occupied = true;
+				map[y+i][x+3].colour = colour;
+			}
+			if(block & 4) {
+				console.log(y+i, x+2);
+				map[y+i][x+2].occupied = true;
+				map[y+i][x+2].colour = colour;
+			}
+			if(block & 2) {
+				console.log(y+i, x+1);
+				map[y+i][x+1].occupied = true;
+				map[y+i][x+1].colour = colour;
+			}
+			if(block & 1) {
+				console.log(y+i, x);
+				map[y+i][x].occupied = true;
+				map[y+i][x].colour = colour;
+			}
+			block = block >> 4;
+		}
+	}
+	
 	////////////////////////////////////////////////////
 	// DISPLAY 
 	////////////////////////////////////////////////////	
@@ -117,7 +148,8 @@
 		for(var i=0; i < ny ; i++) {
 			for(var j =0; j < nx; j++) {
 				if(map[i][j].occupied) {
-					drawBox(ctx,i,j,map[i][j].colour);
+					drawBox(ctx,j,i,map[i][j].colour);
+					console.log(i, j);
 				}
 			}
 		}
