@@ -20,18 +20,21 @@
 	</canvas>
   
 	<script>
+	
+	////////////////////////////////////////////////////
+	// TETRIS PIECES 
+	////////////////////////////////////////////////////
+	var s = { blocks : [0xC600, 0x4C80, 0xC600, 0x4C80], colour : 'red'};
+	var z = { blocks : [0x6C00, 0x8C40, 0x6C00, 0x8C40], colour : 'orange'};
+	var l = { blocks : [0x2E00, 0xC440, 0xE800, 0x88C0], colour : 'green'};
+	var j = { blocks : [0xE200, 0xC880, 0x8E00, 0x44C0], colour : 'purple'};
+	var t = { blocks : [0x0E40, 0x4640, 0x4E00, 0x4C40], colour : 'yellow'};
+	var i = { blocks : [0x2222, 0x0F00, 0x4444, 0x00F0], colour : 'violet'};
+	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'blue'};
+	
 	////////////////////////////////////////////////////
 	// INIT 
 	////////////////////////////////////////////////////
-	
-	var s = { blocks : [0x1320, 0x6300, 0x2640, 0x0630], colour : 'red'};
-	var z = { blocks : [0x2310, 0x3600, 0x4620, 0x0360], colour : 'orange'};
-	var t = { blocks : [0x0720, 0x2320, 0x2700, 0x2620], colour : 'yellow'};
-	var j = { blocks : [0x1700, 0x3110, 0x7400, 0x2230], colour : 'green'};
-	var l = { blocks : [0x7100, 0x3220, 0x4700, 0x1130], colour : 'purple'};
-	var o = { blocks : [0x3300, 0x3300, 0x3300, 0x3300], colour : 'blue'};
-	var i = { blocks : [0x2222, 0x0F00, 0x4444, 0x00F0], colour : 'violet'};
-	
 	canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var nx = 10;
@@ -44,22 +47,22 @@
 	
 	map = new Array(ny);
 	for(var y=0; y < ny ; y++) {
-		map[y] = new Array(nx);
-		for(var x =0; x < nx; x++) {
-			map[y][x] = {occupied : false, colour : 'white'};
-		}
+		initRow(map ,y , nx);
 	}
-
-	loadingScreen();
 	
+	//paintGrid(ctx, nx, ny);
+	loadingScreen();
+		
 	function loadingScreen() {
-		putBlockOnMap(map, s.blocks[0], 2, 1, s.colour);
-		putBlockOnMap(map, z.blocks[0], 4, 0, z.colour);
-		putBlockOnMap(map, t.blocks[0], 2, -1, i.colour);
-		putBlockOnMap(map, j.blocks[1], 0, 0, j.colour);
-		putBlockOnMap(map, l.blocks[0], 6, 0, l.colour);
-		putBlockOnMap(map, o.blocks[1], 5, 2, o.colour);
-		putBlockOnMap(map, i.blocks[0], 6, 1, i.colour);
+		putBlockOnMap(map, o.blocks[0], -1, -2, o.colour);
+		putBlockOnMap(map, t.blocks[3], 2, -2, t.colour);
+		putBlockOnMap(map, l.blocks[3], 0, -1, l.colour);
+		putBlockOnMap(map, z.blocks[1], 4, -2, z.colour);
+		putBlockOnMap(map, s.blocks[2], 5, 0, s.colour);
+		putBlockOnMap(map, i.blocks[1], 6, 0, i.colour);
+		putBlockOnMap(map, j.blocks[0], 3, 1, j.colour);
+		
+		
 		drawMap(ctx,nx,ny,map);
 	}
 	////////////////////////////////////////////////////
@@ -77,19 +80,22 @@
 	}
 	
 	function resize(event){
-		
+		drawMap(ctx,nx,ny,map);
 	}
 	
 	////////////////////////////////////////////////////
 	// MAPPING 
 	////////////////////////////////////////////////////
-	function clearMap(map, nx, ny) {
-		for(var y=0; y < ny ; y++) {
-			for(var x =0; x < nx; x++) {
-				map[y][x].occupied = false;
-				map[y][x].colour = 'white';
-			}
+	
+	function initRow(map ,row , nx) {
+		map[row] = new Array(nx);
+		for(var column =0; column < nx; column++) {
+			map[row][column] = {occupied : false, colour : 'white'};
 		}
+	}
+				
+	function clearMap(map, nx, ny) {
+		clearLine(map,ny ,0, ny);
 	}
 	
 	function clearLine(map,ny ,y, n) {
@@ -97,59 +103,49 @@
 			if(line+ n < nx) {
 				map[line] = map[line+n];
 			}
-			else
-			{
-				map[line] = new Array(nx);
-				for(var column =0; column < nx; column++) {
-					map[line][column] = {occupied : false, colour : 'white'};
-				}
+			else {
+				initRow(map ,line , nx);
 			}
-		}
-	}
-	
-	function isOccupied(map, x, y, ny , nx) {
-		if(y < ny && x < nx) {
-			return map[y][x].occupied;
 		}
 	}
 	
 	function putBlockOnMap(map, block, x, y, colour) {
-	//require some fixing
-		for(var i=3; i >= 0; i--) {
-			if(block & 8) {
-				console.log(y+i, x+3);
-				map[y+i][x+3].occupied = true;
-				map[y+i][x+3].colour = colour;
+		var row = 3, column = 0;
+		for(var mask = 0x8000;  mask > 0;  mask = mask >> 1 )
+		{
+			if(block & mask) {
+				map[y+row][x+column].occupied = true;
+				map[y+row][x+column].colour = colour;	
 			}
-			if(block & 4) {
-				console.log(y+i, x+2);
-				map[y+i][x+2].occupied = true;
-				map[y+i][x+2].colour = colour;
+			
+			if(row == 0) {
+				row = 3;
+				column++;
 			}
-			if(block & 2) {
-				console.log(y+i, x+1);
-				map[y+i][x+1].occupied = true;
-				map[y+i][x+1].colour = colour;
+			else {
+				row--;
 			}
-			if(block & 1) {
-				console.log(y+i, x);
-				map[y+i][x].occupied = true;
-				map[y+i][x].colour = colour;
-			}
-			block = block >> 4;
 		}
 	}
 	
 	////////////////////////////////////////////////////
 	// DISPLAY 
 	////////////////////////////////////////////////////	
+	
+	function paintGrid(ctx, nx, ny) {
+		for(var row =0; row < ny; row++) {
+			for(var column =0; column < nx; column++) {
+				drawBox(ctx, row, column, 'white');
+			}
+		}
+	}
+	
 	function drawMap(ctx, nx, ny, map) {
 		ctx.clearRect(0, 0, hx, hy);
-		for(var i=0; i < ny ; i++) {
-			for(var j =0; j < nx; j++) {
-				if(map[i][j].occupied) {
-					drawBox(ctx,j,i,map[i][j].colour);
-					console.log(i, j);
+		for(var row =0; row < ny; row++) {
+			for(var column =0; column < nx; column++) {
+				if(map[row][column].occupied) {
+					drawBox(ctx, row, column, map[row][column].colour);
 				}
 			}
 		}
@@ -158,7 +154,7 @@
 	// (0,0) is top left.
 	// i would prefer it to be bottom left
 	//hence ny-1-y instead of y
-	function drawBox (ctx, x, y, colour) {
+	function drawBox (ctx, y, x, colour) {
 		ctx.fillStyle = colour;
 		ctx.fillRect(x*width, (ny-1-y)*height, width, height );
 		ctx.strokeRect(x*width, (ny-1-y)*height, width, height );
