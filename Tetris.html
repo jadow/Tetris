@@ -51,7 +51,7 @@
 	}
 	
 	//paintGrid(ctx, nx, ny);
-	//loadingScreen();
+	loadingScreen();
 	addExceptions();
 
 	var locX= 2;
@@ -152,7 +152,7 @@
 		for(var mask = 0x8000;  mask > 0;  mask = mask >> 1 )
 		{
 			if(block & mask) {
-				if(y+row > 0 && y+row < ny && x+column > 0 && x+column < nx ) {}
+				if(y+row > 0 && y+row < ny && x+column > 0 && x+column < nx ) {
 					return false;
 				}
 				else if(map[y+row][x+column].occupied) {
