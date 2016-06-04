@@ -35,7 +35,7 @@
 	////////////////////////////////////////////////////
 	// INIT 
 	////////////////////////////////////////////////////
-	canvas = document.getElementById('canvas');
+	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var nx = 10;
 	var ny = 20;
@@ -43,21 +43,24 @@
 	var hx = canvas.width;
 	var height = hy / ny;
 	var width = hx / nx;
+
 	var map; //[y][x]
-	
 	map = new Array(ny);
 	for(var y=0; y < ny ; y++) {
 		initRow(map ,y , nx);
 	}
+	var locX;
+	var locY;
+	var piece = i;
+	var rotation;
+
 	
+	newBlock();
 	//paintGrid(ctx, nx, ny);
-	loadingScreen();
+	//loadingScreen();
 	addExceptions();
 
-	var locX= 2;
-	var locY= 16;
-	var block = i;
-
+	
 	
 	function loadingScreen() {
 		putBlockOnMap(map, o.blocks[0], -2, -1, o.colour);
@@ -67,7 +70,7 @@
 		putBlockOnMap(map, s.blocks[2], 0, 5, s.colour);
 		putBlockOnMap(map, i.blocks[1], 0, 6, i.colour);
 		putBlockOnMap(map, j.blocks[0], 1, 3, j.colour);
-		
+
 		
 		drawMap(ctx,nx,ny,map);
 	}
@@ -82,44 +85,126 @@
 	}
 	
 	function keydown(event) {
-		console.log(event.keyCode);
+		document.removeEventListener('keydown', keydown, false);
 		
 		if(event.keyCode == 40 ) {
-		//down
-		
+			//down
+			rotateRight();
 		}
 		else if(event.keyCode == 39 ) {
-		//right
-		takeBlockFromMap(map, i.blocks[1], locY, locX, 'white')
-		locX = locX + 1;
-		putBlockOnMap(map, i.blocks[1], locY, locX, i.colour);
-				
+			//right
+			moveRight();
+			
 		}
 		else if(event.keyCode == 38 ) {
-		//up
-
+			//up
+			rotateLeft();
+			
 		}
 		else if(event.keyCode == 37 ) {
-		//left
-		takeBlockFromMap(map, i.blocks[1], locY, locX, 'white')
-		locX = locX - 1;
-		putBlockOnMap(map, i.blocks[1], locY, locX, i.colour);
-		
+			//left
+			moveLeft();
+			
 		}
 		else if(event.keyCode == 32 ) {
-		//space
-
+			//space
+			moveDown();
+			
 		}
 		else if(event.keyCode == 27 ) {
-		//esc
-
+			//esc
+			//no plans yet
 		}
 		
+		checkLines();
 		drawMap(ctx,nx,ny,map);
+		document.addEventListener('keydown', keydown, false);
 	}
 	
 	function resize(event){
 		drawMap(ctx,nx,ny,map);
+	}
+	
+	////////////////////////////////////////////////////
+	// ACTIONS 
+	////////////////////////////////////////////////////	
+	
+	function moveLeft() {
+		if(checkBlockOnMap(map, piece.blocks[rotation], locY, locX - 1)) {
+			takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			locX--;
+			putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+		}
+	}
+		
+	function moveRight() {
+		if(checkBlockOnMap(map, piece.blocks[rotation], locY, locX + 1)) {
+			takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			locX++;
+			putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+		}	
+	}
+	
+	function moveDown() {
+		if(checkBlockOnMap(map, piece.blocks[rotation], locY - 1, locX)) {
+			takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			locY--;
+			putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	function rotateLeft() {
+		var nextRotation = rotation--;
+		if(nextRotation < 0) {
+			nextRotation = 3;
+		}
+		if(checkBlockOnMap(map, piece.blocks[nextRotation], locY, locX)) {
+			takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			rotation = nextRotation;
+			putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+		}		
+	}
+	
+	function rotateRight() {
+		var nextRotation = rotation++;
+		if(nextRotation > 3) {
+			nextRotation = 0;
+		}
+		if(checkBlockOnMap(map, piece.blocks[nextRotation], locY, locX)) {
+			takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+			rotation = nextRotation;
+			putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
+		}	
+	}
+	
+	function newBlock() {
+		locX = 2;
+		locY = 16;
+		rotation = 1;	
+		
+		//randomize next piece
+		piece = i;
+		putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colours);
+		
+		drawMap(ctx,nx,ny,map);
+	}
+	
+	function checkLines() {
+		for(var row = 0; row < ny; row++) {
+			var removeLine = true;
+			for(var column =0; column < nx; column++) {
+				if(!map[row][column].occupied) {
+					removeLine = false
+				}
+			}
+			if(removeLine == true) {
+				clearLine(map,ny ,row, 1);
+			}
+		}
 	}
 	
 	////////////////////////////////////////////////////
@@ -147,27 +232,32 @@
 			}
 		}
 	}
+	
 	function checkBlockOnMap(map, block, y, x) {
 		var row = 3, column = 0;
+		console.log(y, x);
 		for(var mask = 0x8000;  mask > 0;  mask = mask >> 1 )
 		{
 			if(block & mask) {
 				if(y+row > 0 && y+row < ny && x+column > 0 && x+column < nx ) {
-					return false;
+				
+		console.log(true,1 );
+					return false;	
 				}
 				else if(map[y+row][x+column].occupied) {
-					return false;
+				
+		console.log(true, 2);
+					return false;	
 				}				
 			}
 			
-			if(row == 0) {
+			if(--row == -1) {
 				row = 3;
 				column++;
 			}
-			else {
-				row--;
-			}
 		}
+		
+		console.log(true);
 		return true;
 	}
 	
@@ -180,12 +270,9 @@
 				map[y+row][x+column].colour = colour;	
 			}
 			
-			if(row == 0) {
+			if(--row == -1) {
 				row = 3;
 				column++;
-			}
-			else {
-				row--;
 			}
 		}
 	}
@@ -199,12 +286,9 @@
 				map[y+row][x+column].colour = 'white';	
 			}
 			
-			if(row == 0) {
+			if(--row == -1) {
 				row = 3;
 				column++;
-			}
-			else {
-				row--;
 			}
 		}
 	}
