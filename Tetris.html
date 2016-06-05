@@ -57,7 +57,7 @@
 	
 	newBlock();
 	//paintGrid(ctx, nx, ny);
-	//loadingScreen();
+	loadingScreen();
 	addExceptions();
 
 	
@@ -75,6 +75,10 @@
 		drawMap(ctx,nx,ny,map);
 	}
 	////////////////////////////////////////////////////
+	// GAME 
+	////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////
 	// EXCEPTIONS 
 	////////////////////////////////////////////////////
 	
@@ -89,7 +93,9 @@
 		
 		if(event.keyCode == 40 ) {
 			//down
-			moveDown();
+			if(!moveDown()) {
+				newBlock();
+			}
 		}
 		else if(event.keyCode == 39 ) {
 			//right
@@ -109,6 +115,7 @@
 		else if(event.keyCode == 32 ) {
 			//space
 			while(moveDown());
+			newBlock();
 			
 		}
 		else if(event.keyCode == 27 ) {
@@ -128,11 +135,6 @@
 	////////////////////////////////////////////////////
 	// ACTIONS 
 	////////////////////////////////////////////////////	
-	
-	
-	// TODO
-	// takeblock -> checkblock -> addblock
-	
 	function moveLeft() {
 		takeBlockFromMap(map, piece.blocks[rotation], locY, locX, piece.colour);
 		if(checkBlockOnMap(map, piece.blocks[rotation], locY, locX - 1)) {
@@ -188,12 +190,20 @@
 		locX = 2;
 		locY = 16;
 		rotation = 1;	
-		
-		//randomize next piece
-		piece = i;
+		piece =  randomizeNextPiece();
 		putBlockOnMap(map, piece.blocks[rotation], locY, locX, piece.colour);
-		
-		drawMap(ctx,nx,ny,map);
+	}
+	
+	function randomizeNextPiece() {
+		switch( Math.floor((Math.random() * 7) + 1)) {
+			case 1: return i; break;
+			case 2: return o; break;
+			case 3: return j; break;
+			case 4: return l; break;
+			case 5: return z; break;
+			case 6: return s; break;
+			case 7: return t; break;
+		}
 	}
 	
 	function checkLines() {
@@ -238,7 +248,6 @@
 	
 	function checkBlockOnMap(map, block, y, x) {
 		var row = 3, column = 0;
-		console.log(y, x);
 		for(var mask = 0x8000;  mask > 0;  mask = mask >> 1 )
 		{
 			if(block & mask) {
