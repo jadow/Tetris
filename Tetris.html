@@ -213,7 +213,12 @@
 	
 	function gameOver() {
 		gameInProgress = false;
-		alert("Game Over");
+		ctx.clearRect(0, 0, 400, 800);
+		ctx.font = "50px Tahoma";
+		ctx.textAlign="center";
+		ctx.fillText("GAME OVER!",200, 400);
+
+
 	}
 	
 	function newGame() {
@@ -352,15 +357,29 @@
 				}
 			}
 		}
+		ctx.font = "50px Tahoma";
+		ctx.textAlign="center";
+		ctx.fillText("GAME OVER!",200, 400);
 	}
 	
 	// (0,0) is top left.
 	// i would prefer it to be bottom left
 	//hence ny-1-y instead of y
 	function drawBox (ctx, y, x, colour) {
+		var oldColour = ctx.fillStyle;
 		ctx.fillStyle = colour;
 		ctx.fillRect(x*width, (ny-1-y)*height, width, height );
 		ctx.strokeRect(x*width, (ny-1-y)*height, width, height );
+		ctx.fillStyle = oldColour;
+	}
+	
+	function displayText (ctx, y, x, text, font) {
+	
+		var oldFont = ctx.font;
+		ctx.font = font;
+		ctx.fillText(text, x*width, (ny-1-y)*height);
+		console.log(text, x*width, (ny-1-y)*height);
+		ctx.font = oldFont;
 	}
 	
 	</script>
