@@ -32,6 +32,20 @@
 	var i = { blocks : [0x0F00, 0x4444, 0x00F0, 0x2222], colour : 'violet'};
 	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'blue'};
 	
+	window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function(/* function */ callback, /* DOMElement */ element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+	
+	
+	
+	
 	////////////////////////////////////////////////////
 	// INIT 
 	////////////////////////////////////////////////////
@@ -59,9 +73,8 @@
 	//paintGrid(ctx, nx, ny);
 	//loadingScreen();
 	addExceptions();
-	drawMap(ctx,nx,ny,map);
-
-	
+	animate();
+	movePiece();
 	
 	function loadingScreen() {
 		putBlockOnMap(map, o.blocks[0], -2, -1, o.colour);
@@ -115,14 +128,20 @@
 		else if(event.keyCode == KEY.DEL ) {
 			//newgame
 		}
-		
-		drawMap(ctx,nx,ny,map);
 	}
 	
 	function resize(event){
 		drawMap(ctx,nx,ny,map);
 	}
 	
+	function movePiece() {
+		if(!moveDown()) {
+			checkLines();
+			newBlock();
+		}	
+		window.setTimeout(function(){ movePiece() }, 1000);
+	}
+		
 	////////////////////////////////////////////////////
 	// ACTIONS 
 	////////////////////////////////////////////////////	
@@ -297,6 +316,11 @@
 	////////////////////////////////////////////////////
 	// DISPLAY 
 	////////////////////////////////////////////////////	
+
+	function animate() {
+		requestAnimFrame( animate );
+		drawMap(ctx, nx, ny, map);
+	}
 	
 	function paintGrid(ctx, nx, ny) {
 		for(var row =0; row < ny; row++) {
