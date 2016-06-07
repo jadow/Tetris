@@ -65,13 +65,14 @@
 	}
 	var locX;
 	var locY;
-	var current = i;
+	var current;
 	var rotation;
+	var gameInProgress = false;
 
 	//paintGrid(ctx, nx, ny);
 	//loadingScreen();
 	
-	newBlock();
+	//newBlock();
 	addExceptions();
 	animate();
 	dropPiece();
@@ -101,27 +102,27 @@
 	
 	function keydown(event) {
 		console.log(event.keyCode);
-		if(event.keyCode == KEY.RIGHT ) {
-			moveRight();
-		}
-		else if(event.keyCode == KEY.LEFT ) {
-			moveLeft();
-		}
-		else if(event.keyCode == KEY.UP ) {
-			rotateLeft();
-		}
-		else if(event.keyCode == KEY.SPACE ) {
-			while(moveDown());
-			checkLines();
-			newBlock();
-		}
-		else if(event.keyCode == KEY.DOWN ) {
-			if(!moveDown()) {
-				checkLines();
-				newBlock();
+		if(gameInProgress) {
+			if(event.keyCode == KEY.LEFT ) {
+				moveLeft();
 			}
+			else if(event.keyCode == KEY.RIGHT ) {
+				moveRight();
+			}
+			else if(event.keyCode == KEY.UP ) {
+				rotateLeft();
+			}
+			else if(event.keyCode == KEY.DOWN ) {
+				if(!moveDown()) {
+					checkLines();
+				}
+			}
+			else if(event.keyCode == KEY.SPACE ) {
+				while(moveDown());
+				checkLines();
+			}			
 		}
-		else if(event.keyCode == KEY.DEL ) {
+		if(event.keyCode == KEY.DEL ) {
 			newGame();
 		}		
 		else if(event.keyCode == KEY.END ) {
@@ -201,19 +202,25 @@
 	}
 	
 	function dropPiece() {
-		if(!moveDown()) {
-			checkLines();
-			newBlock();
-		}	
-		window.setTimeout(function(){ dropPiece() }, 1000);
+		if(gameInProgress) {			
+			if(!moveDown()) {
+				checkLines();
+				newBlock();
+			}	
+			window.setTimeout(function(){ dropPiece() }, 1000);
+		}
 	}
 	
 	function gameOver() {
-	
+		gameInProgress = false;
+		alert("Game Over");
 	}
 	
 	function newGame() {
-	
+		clearMap();
+		newBlock();
+		gameInProgress = true;
+		dropPiece();
 	}
 	
 	function randomizeNextPiece() {
@@ -240,6 +247,11 @@
 				clearLine(map,ny ,row--, 1);
 			}
 		}
+		newBlock();
+	}
+	
+	function clearMap() {
+		clearLine(map,ny ,0, ny);
 	}
 	
 	////////////////////////////////////////////////////
@@ -250,10 +262,6 @@
 		for(var column =0; column < nx; column++) {
 			map[row][column] = {occupied : false, colour : 'white'};
 		}
-	}
-				
-	function clearMap(map, nx, ny) {
-		clearLine(map,ny ,0, ny);
 	}
 	
 	function clearLine(map,ny ,y, n) {
