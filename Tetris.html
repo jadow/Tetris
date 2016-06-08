@@ -22,6 +22,20 @@
 	<script>
 	
 	////////////////////////////////////////////////////
+	// Animation API
+	////////////////////////////////////////////////////
+	window.requestAnimFrame = (function(){
+		return  window.requestAnimationFrame       || 
+				window.webkitRequestAnimationFrame || 
+				window.mozRequestAnimationFrame    || 
+				window.oRequestAnimationFrame      || 
+				window.msRequestAnimationFrame     || 
+				function(/* function */ callback, /* DOMElement */ element){
+				window.setTimeout(callback, 1000 / 60);
+				};
+    })();
+	
+	////////////////////////////////////////////////////
 	// TETRIS PIECES 
 	////////////////////////////////////////////////////
 	var s = { blocks : [0xC600, 0x4C80, 0xC600, 0x4C80], colour : 'red'};
@@ -31,7 +45,7 @@
 	var t = { blocks : [0x4C40, 0x0E40, 0x4640, 0x4E00], colour : 'yellow'};
 	var i = { blocks : [0x0F00, 0x4444, 0x00F0, 0x2222], colour : 'violet'};
 	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'blue'};
-
+	
 	////////////////////////////////////////////////////
 	// INIT 
 	////////////////////////////////////////////////////
@@ -47,62 +61,28 @@
 	////////////////////////////////////////////////////
 	// GAME VARIABLES
 	////////////////////////////////////////////////////
-	window.requestAnimFrame = (function(){
-      return  window.requestAnimationFrame       || 
-              window.webkitRequestAnimationFrame || 
-              window.mozRequestAnimationFrame    || 
-              window.oRequestAnimationFrame      || 
-              window.msRequestAnimationFrame     || 
-              function(/* function */ callback, /* DOMElement */ element){
-                window.setTimeout(callback, 1000 / 60);
-              };
-    })();
-	
+	var GAMESTATE = {STARTSCREEN:0, GAMEON:1, GAMEOVER:2};
 	var map; //[y][x]
 	map = new Array(ny);
 	for(var y=0; y < ny ; y++) {
 		initRow(map ,y , nx);
 	}
-	var locX;
-	var locY;
-	var current;
-	var rotation;
-	var gameInProgress = false;
+	var locX, locY, current, rotation, gameState, ClearedLines, Score;
+	
+	startScreen();
 
-	//paintGrid(ctx, nx, ny);
-	//loadingScreen();
-	
-	//newBlock();
-	addExceptions();
-	animate();
-	dropPiece();
-	
-	function loadingScreen() {
-		putBlockOnMap(map, o.blocks[0], -2, -1, o.colour);
-		putBlockOnMap(map, t.blocks[3], -2, 2, t.colour);
-		putBlockOnMap(map, l.blocks[3], -1, 0, l.colour);
-		putBlockOnMap(map, z.blocks[1], -2, 4, z.colour);
-		putBlockOnMap(map, s.blocks[2], 0, 5, s.colour);
-		putBlockOnMap(map, i.blocks[1], 0, 6, i.colour);
-		putBlockOnMap(map, j.blocks[0], 1, 3, j.colour);
-
-		drawMap(ctx,nx,ny,map);
-	}
-	
 	////////////////////////////////////////////////////
 	// EXCEPTIONS 
 	////////////////////////////////////////////////////
 	var KEY  = { ESC: 27, SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 , ENTER: 13, SHIFT: 16, DEL:46, END:35};
 	
-	function addExceptions()
-	{
+	function addExceptions() {
 		document.addEventListener('keydown', keydown, false);
 		window.addEventListener('resize', resize, false);
 	}
 	
 	function keydown(event) {
-		console.log(event.keyCode);
-		if(gameInProgress) {
+		if(gameState == GAMESTATE.GAMEON) {
 			if(event.keyCode == KEY.LEFT ) {
 				moveLeft();
 			}
@@ -120,14 +100,15 @@
 			else if(event.keyCode == KEY.SPACE ) {
 				while(moveDown());
 				checkLines();
-			}			
+			}
+			else if(event.keyCode == KEY.END ) {
+				gameOver();
+			}
 		}
+		
 		if(event.keyCode == KEY.DEL ) {
 			newGame();
-		}		
-		else if(event.keyCode == KEY.END ) {
-			gameOver();
-		}
+		}	
 	}
 	
 	function resize(event){
@@ -188,6 +169,22 @@
 		putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
 	}
 	
+	function checkLines() {
+		for(var row = 0; row < ny; row++) {
+			var removeLine = true;
+			for(var column =0; column < nx; column++) {
+				if(!map[row][column].occupied) {
+					removeLine = false
+				}
+			}
+			if(removeLine == true) {
+				clearLine(map,ny ,row--, 1);
+				ClearedLines++;
+			}
+		}
+		newBlock();
+	}
+	
 	function newBlock() {
 		locX = 3;
 		locY = 16;
@@ -201,62 +198,47 @@
 		}
 	}
 	
-	function dropPiece() {
-		if(gameInProgress) {			
-			if(!moveDown()) {
-				checkLines();
-				newBlock();
-			}	
-			window.setTimeout(function(){ dropPiece() }, 1000);
-		}
-	}
-	
-	function gameOver() {
-		gameInProgress = false;
-		ctx.clearRect(0, 0, 400, 800);
-		ctx.font = "50px Tahoma";
-		ctx.textAlign="center";
-		ctx.fillText("GAME OVER!",200, 400);
-
-
-	}
-	
-	function newGame() {
-		clearMap();
-		newBlock();
-		gameInProgress = true;
-		dropPiece();
-	}
-	
 	function randomizeNextPiece() {
 		switch(Math.floor((Math.random() * 14) + 1)) {
-			case 1: case 8: return i; break;
-			case 2: case 9: return o; break;
+			case 1: case 8:  return i; break;
+			case 2: case 9:  return o; break;
 			case 3: case 10: return j; break;
 			case 4: case 11: return l; break;
 			case 5: case 12: return z; break;
 			case 6: case 13: return s; break;
 			case 7: case 14: return t; break;
 		}
-	}
+	}	
 	
-	function checkLines() {
-		for(var row = 0; row < ny; row++) {
-			var removeLine = true;
-			for(var column =0; column < nx; column++) {
-				if(!map[row][column].occupied) {
-					removeLine = false
-				}
-			}
-			if(removeLine == true) {
-				clearLine(map,ny ,row--, 1);
-			}
+	function dropPiece() {
+		if(!moveDown()) {
+			checkLines();
+			newBlock();
+		}	
+		if(gameState == GAMESTATE.GAMEON) {
+			window.setTimeout(function(){ dropPiece() }, 1000);
 		}
-		newBlock();
 	}
 	
-	function clearMap() {
-		clearLine(map,ny ,0, ny);
+	function gameOver() {
+		gameState = GAMESTATE.GAMEOVER;
+	}
+	
+	function newGame() {
+		ClearedLines = 0;
+		Score = 0;
+		clearMap(map, nx, ny);
+		newBlock();
+		if(gameState != GAMESTATE.GAMEON) {
+			gameState = GAMESTATE.GAMEON;
+			dropPiece();
+		}
+	}
+	
+	function startScreen() {
+		addExceptions();
+		animate();
+		gameState = GAMESTATE.STARTSCREEN;
 	}
 	
 	////////////////////////////////////////////////////
@@ -267,6 +249,10 @@
 		for(var column =0; column < nx; column++) {
 			map[row][column] = {occupied : false, colour : 'white'};
 		}
+	}
+				
+	function clearMap(map, nx, ny) {
+		clearLine(map,ny ,0, ny);
 	}
 	
 	function clearLine(map,ny ,y, n) {
@@ -337,7 +323,21 @@
 	////////////////////////////////////////////////////	
 	function animate() {
 		requestAnimFrame( animate );
-		drawMap(ctx, nx, ny, map);
+		switch(gameState) {
+			case GAMESTATE.STARTSCREEN:
+				drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "100px Tahoma", 'black');
+			break;
+			
+			case GAMESTATE.GAMEON:
+				drawMap(ctx, nx, ny, map);
+			break;
+
+			case GAMESTATE.GAMEOVER:
+				drawText(ctx, hy / 2, hx / 2, "GAME OVER", "center", "70px Tahoma", 'black');
+				drawText(ctx, hy * ( 0.4), hx / 2, "LINES:" + ClearedLines, "center", "60px Tahoma", 'black');
+			break;
+		
+		}	
 	}
 	
 	function paintGrid(ctx, nx, ny) {
@@ -357,29 +357,26 @@
 				}
 			}
 		}
-		ctx.font = "50px Tahoma";
-		ctx.textAlign="center";
-		ctx.fillText("GAME OVER!",200, 400);
 	}
 	
 	// (0,0) is top left.
 	// i would prefer it to be bottom left
 	//hence ny-1-y instead of y
 	function drawBox (ctx, y, x, colour) {
-		var oldColour = ctx.fillStyle;
 		ctx.fillStyle = colour;
 		ctx.fillRect(x*width, (ny-1-y)*height, width, height );
 		ctx.strokeRect(x*width, (ny-1-y)*height, width, height );
-		ctx.fillStyle = oldColour;
 	}
 	
-	function displayText (ctx, y, x, text, font) {
-	
-		var oldFont = ctx.font;
+	function drawText(ctx, y, x, text, align, font, colour) {
+		var saveAlign = ctx.textAlign, saveFont = ctx.font, saveColour = ctx.colour;
+		ctx.textAlign = align;
 		ctx.font = font;
-		ctx.fillText(text, x*width, (ny-1-y)*height);
-		console.log(text, x*width, (ny-1-y)*height);
-		ctx.font = oldFont;
+		ctx.fillStyle = colour;
+		ctx. fillText(text, x, hy - y);
+		ctx.textAlign = saveAlign;
+		ctx.font = saveFont;
+		ctx.colour = saveColour;
 	}
 	
 	</script>
