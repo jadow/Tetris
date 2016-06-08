@@ -199,14 +199,14 @@
 	}
 	
 	function randomizeNextPiece() {
-		switch(Math.floor((Math.random() * 14) + 1)) {
-			case 1: case 8:  return i; break;
-			case 2: case 9:  return o; break;
-			case 3: case 10: return j; break;
-			case 4: case 11: return l; break;
-			case 5: case 12: return z; break;
-			case 6: case 13: return s; break;
-			case 7: case 14: return t; break;
+		switch(Math.floor((Math.random() * 28) + 1)) {
+			case 1: case 8:  case 15: case 22: return i; break;
+			case 2: case 9:  case 16: case 23: return o; break;
+			case 3: case 10: case 17: case 24: return j; break;
+			case 4: case 11: case 18: case 25: return l; break;
+			case 5: case 12: case 19: case 26: return z; break;
+			case 6: case 13: case 20: case 27: return s; break;
+			case 7: case 14: case 21: case 28: return t; break;
 		}
 	}	
 	
@@ -325,7 +325,7 @@
 		requestAnimFrame( animate );
 		switch(gameState) {
 			case GAMESTATE.STARTSCREEN:
-				drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "100px Tahoma", 'black');
+				drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "100px impact", 'black');
 			break;
 			
 			case GAMESTATE.GAMEON:
@@ -333,8 +333,8 @@
 			break;
 
 			case GAMESTATE.GAMEOVER:
-				drawText(ctx, hy / 2, hx / 2, "GAME OVER", "center", "70px Tahoma", 'black');
-				drawText(ctx, hy * ( 0.4), hx / 2, "LINES:" + ClearedLines, "center", "60px Tahoma", 'black');
+				drawText(ctx, hy / 2, hx / 2, "GAME OVER", "center", "70px impact", 'black');
+				drawText(ctx, hy * ( 0.4), hx / 2, "LINES:" + ClearedLines, "center", "60px impact", 'black');
 			break;
 		
 		}	
