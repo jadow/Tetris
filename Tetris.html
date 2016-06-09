@@ -40,11 +40,11 @@
 	////////////////////////////////////////////////////
 	var s = { blocks : [0xC600, 0x4C80, 0xC600, 0x4C80], colour : 'red'};
 	var z = { blocks : [0x6C00, 0x8C40, 0x6C00, 0x8C40], colour : 'orange'};
-	var l = { blocks : [0xC880, 0x08E0, 0x2260, 0xE200], colour : 'green'};
-	var j = { blocks : [0x02E0, 0x6220, 0xE800, 0x88C0], colour : 'purple'};
-	var t = { blocks : [0x4C40, 0x0E40, 0x4640, 0x4E00], colour : 'yellow'};
-	var i = { blocks : [0x0F00, 0x4444, 0x00F0, 0x2222], colour : 'violet'};
-	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'blue'};
+	var l = { blocks : [0xC880, 0x08E0, 0x2260, 0xE200], colour : 'Cyan'};
+	var j = { blocks : [0x02E0, 0x6220, 0xE800, 0x88C0], colour : 'DarkSlateBlue'};
+	var t = { blocks : [0x4C40, 0x0E40, 0x4640, 0x4E00], colour : 'BurlyWood'};
+	var i = { blocks : [0x0F00, 0x4444, 0x00F0, 0x2222], colour : 'BlueViolet'};
+	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'FireBrick'};
 	
 	////////////////////////////////////////////////////
 	// INIT 
@@ -190,11 +190,11 @@
 		locY = 16;
 		rotation = 0;	
 		current =  randomizeNextPiece();
-		if(checkBlockOnMap(map, current.blocks[rotation], locY, locX)) {
-			putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
-		}
-		else {
+		if(!checkBlockOnMap(map, current.blocks[rotation], locY, locX)) {
 			gameOver();
+		}
+		if(gameState == GAMESTATE.GAMEON) {
+			putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
 		}
 	}
 	
@@ -239,6 +239,17 @@
 		addExceptions();
 		animate();
 		gameState = GAMESTATE.STARTSCREEN;
+		
+		putBlockOnMap(map, o.blocks[0], -2,  0, o.colour);
+		putBlockOnMap(map, l.blocks[3], -1,  3, l.colour);
+		putBlockOnMap(map, j.blocks[2], -1,  0, j.colour);
+		putBlockOnMap(map, t.blocks[3], -1,  6, t.colour);
+		putBlockOnMap(map, s.blocks[0],  1,  3, s.colour);
+		putBlockOnMap(map, i.blocks[0],  2,  1, i.colour);
+		putBlockOnMap(map, z.blocks[1], -2,  4, z.colour);	
+		putBlockOnMap(map, i.blocks[0],  0,  7, i.colour);
+		
+		putBlockOnMap(map, o.blocks[0],  1, -1, o.colour);
 	}
 	
 	////////////////////////////////////////////////////
@@ -323,23 +334,15 @@
 	////////////////////////////////////////////////////	
 	function animate() {
 		requestAnimFrame( animate );
-		switch(gameState) {
-			case GAMESTATE.STARTSCREEN:
-				drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "100px impact", 'black');
-			break;
-			
-			case GAMESTATE.GAMEON:
-				drawMap(ctx, nx, ny, map);
-			break;
-
-			case GAMESTATE.GAMEOVER:
-				drawText(ctx, hy / 2, hx / 2, "GAME OVER", "center", "70px impact", 'black');
-				drawText(ctx, hy * ( 0.4), hx / 2, "LINES:" + ClearedLines, "center", "60px impact", 'black');
-			break;
-		
-		}	
+		drawMap(ctx, nx, ny, map);
+		if(gameState == GAMESTATE.GAMEOVER) {
+			displayGameOver();
+		} 
+		else if(gameState == GAMESTATE.STARTSCREEN) {
+			displayStartScreen();
+		} 
 	}
-	
+		
 	function paintGrid(ctx, nx, ny) {
 		for(var row =0; row < ny; row++) {
 			for(var column =0; column < nx; column++) {
@@ -359,6 +362,15 @@
 		}
 	}
 	
+	function displayStartScreen() {
+		drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "bold 90px sans-serif", 'Gainsboro');
+	}
+	
+	function displayGameOver() {
+		drawText(ctx, hy * ( 0.52), hx / 2, "GAME OVER", "center", "bold 60px sans-serif", 'Gainsboro');
+		drawText(ctx, hy * ( 0.47), hx / 2, "LINE: " + ClearedLines, "center", "bold 50px sans-serif", 'Gainsboro');
+	}
+	
 	// (0,0) is top left.
 	// i would prefer it to be bottom left
 	//hence ny-1-y instead of y
@@ -369,14 +381,11 @@
 	}
 	
 	function drawText(ctx, y, x, text, align, font, colour) {
-		var saveAlign = ctx.textAlign, saveFont = ctx.font, saveColour = ctx.colour;
 		ctx.textAlign = align;
 		ctx.font = font;
 		ctx.fillStyle = colour;
-		ctx. fillText(text, x, hy - y);
-		ctx.textAlign = saveAlign;
-		ctx.font = saveFont;
-		ctx.colour = saveColour;
+		ctx.fillText(text, x, hy - y);
+		ctx.strokeText(text, x, hy - y);
 	}
 	
 	</script>
