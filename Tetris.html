@@ -67,7 +67,7 @@
 	for(var y=0; y < ny ; y++) {
 		initRow(map ,y , nx);
 	}
-	var locX, locY, current, rotation, gameState, ClearedLines, Score;
+	var locX, locY, current, rotation, gameState, ClearedLines, Score, speed;
 	
 	startScreen();
 
@@ -187,6 +187,13 @@
 		locY = 16;
 		rotation = 0;	
 		current =  randomizeNextPiece();
+		
+		if(speed > 200) {
+			speed -= 20;
+		}
+		else {
+			speed = 200;
+		}
 		if(!checkBlockOnMap(map, current.blocks[rotation], locY, locX)) {
 			gameOver();
 		}
@@ -213,7 +220,7 @@
 			newBlock();
 		}	
 		if(gameState == GAMESTATE.GAMEON) {
-			window.setTimeout(function(){ dropPiece() }, 1000);
+			window.setTimeout(function(){ dropPiece() }, speed);
 		}
 	}
 	
@@ -224,6 +231,7 @@
 	function newGame() {
 		ClearedLines = 0;
 		Score = 0;
+		speed = 2000;
 		clearMap(map, nx, ny);
 		newBlock();
 		if(gameState != GAMESTATE.GAMEON) {
