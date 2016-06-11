@@ -101,9 +101,6 @@
 				while(moveDown());
 				checkLines();
 			}
-			else if(event.keyCode == KEY.END ) {
-				gameOver();
-			}
 		}
 		
 		if(event.keyCode == KEY.DEL ) {
@@ -248,7 +245,6 @@
 		putBlockOnMap(map, i.blocks[0],  2,  1, i.colour);
 		putBlockOnMap(map, z.blocks[1], -2,  4, z.colour);	
 		putBlockOnMap(map, i.blocks[0],  0,  7, i.colour);
-		
 		putBlockOnMap(map, o.blocks[0],  1, -1, o.colour);
 	}
 	
