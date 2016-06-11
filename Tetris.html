@@ -57,6 +57,9 @@
 	var hx = canvas.width;
 	var height = hy / ny;
 	var width = hx / nx;
+	var gameStartingSpeed = 2000 ;
+	var	gameSpeedUp = 20;
+	var gameMaxSpeed = 200;
 
 	////////////////////////////////////////////////////
 	// GAME VARIABLES
@@ -181,6 +184,17 @@
 		}
 		newBlock();
 	}
+		
+	function dropPiece() {
+	
+		if(gameState == GAMESTATE.GAMEON) {
+			if(!moveDown()) {
+				checkLines();
+				newBlock();
+			}	
+			window.setTimeout(function(){ dropPiece() }, speed);
+		}
+	}
 	
 	function newBlock() {
 		locX = 3;
@@ -188,18 +202,18 @@
 		rotation = 0;	
 		current =  randomizeNextPiece();
 		
-		if(speed > 200) {
-			speed -= 20;
+		if(speed > gameMaxSpeed) {
+			speed -= gameSpeedUp;
 		}
 		else {
-			speed = 200;
+			speed = gameMaxSpeed;
 		}
+		
 		if(!checkBlockOnMap(map, current.blocks[rotation], locY, locX)) {
 			gameOver();
 		}
-		if(gameState == GAMESTATE.GAMEON) {
-			putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
-		}
+		
+		putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
 	}
 	
 	function randomizeNextPiece() {
@@ -214,16 +228,6 @@
 		}
 	}	
 	
-	function dropPiece() {
-		if(!moveDown()) {
-			checkLines();
-			newBlock();
-		}	
-		if(gameState == GAMESTATE.GAMEON) {
-			window.setTimeout(function(){ dropPiece() }, speed);
-		}
-	}
-	
 	function gameOver() {
 		gameState = GAMESTATE.GAMEOVER;
 	}
@@ -231,7 +235,7 @@
 	function newGame() {
 		ClearedLines = 0;
 		Score = 0;
-		speed = 2000;
+		speed = gameStartingSpeed;
 		clearMap(map, nx, ny);
 		newBlock();
 		if(gameState != GAMESTATE.GAMEON) {
@@ -259,12 +263,6 @@
 	////////////////////////////////////////////////////
 	// MAPPING 
 	////////////////////////////////////////////////////
-	function initRow(map ,row , nx) {
-		map[row] = new Array(nx);
-		for(var column =0; column < nx; column++) {
-			map[row][column] = {occupied : false, colour : 'white'};
-		}
-	}
 				
 	function clearMap(map, nx, ny) {
 		clearLine(map,ny ,0, ny);
@@ -278,6 +276,13 @@
 			else {
 				initRow(map ,line , nx);
 			}
+		}
+	}
+	
+	function initRow(map ,row , nx) {
+		map[row] = new Array(nx);
+		for(var column =0; column < nx; column++) {
+			map[row][column] = {occupied : false, colour : 'white'};
 		}
 	}
 	
@@ -346,6 +351,15 @@
 			displayStartScreen();
 		} 
 	}
+	
+	function displayStartScreen() {
+		drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "bold 90px sans-serif", 'Gainsboro');
+	}
+	
+	function displayGameOver() {
+		drawText(ctx, hy * ( 0.52), hx / 2, "GAME OVER", "center", "bold 60px sans-serif", 'Gainsboro');
+		drawText(ctx, hy * ( 0.47), hx / 2, "LINE: " + ClearedLines, "center", "bold 50px sans-serif", 'Gainsboro');
+	}
 		
 	function paintGrid(ctx, nx, ny) {
 		for(var row =0; row < ny; row++) {
@@ -365,16 +379,7 @@
 			}
 		}
 	}
-	
-	function displayStartScreen() {
-		drawText(ctx, hy / 2, hx / 2, "TETRIS", "center", "bold 90px sans-serif", 'Gainsboro');
-	}
-	
-	function displayGameOver() {
-		drawText(ctx, hy * ( 0.52), hx / 2, "GAME OVER", "center", "bold 60px sans-serif", 'Gainsboro');
-		drawText(ctx, hy * ( 0.47), hx / 2, "LINE: " + ClearedLines, "center", "bold 50px sans-serif", 'Gainsboro');
-	}
-	
+		
 	// (0,0) is top left.
 	// i would prefer it to be bottom left
 	//hence ny-1-y instead of y
