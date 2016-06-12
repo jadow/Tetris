@@ -57,19 +57,13 @@
 	var hx = canvas.width;
 	var height = hy / ny;
 	var width = hx / nx;
-	var gameStartingSpeed = 2000 ;
-	var	gameSpeedUp = 20;
-	var gameMaxSpeed = 200;
+	var map = new Array(ny); //[y][x]
 
 	////////////////////////////////////////////////////
 	// GAME VARIABLES
 	////////////////////////////////////////////////////
 	var GAMESTATE = {STARTSCREEN:0, GAMEON:1, GAMEOVER:2};
-	var map; //[y][x]
-	map = new Array(ny);
-	for(var y=0; y < ny ; y++) {
-		initRow(map ,y , nx);
-	}
+	var GAMESPEED = {STARTINGSPEED: 2000, SPEEDUP: 10, MAXSPEED: 200};
 	var locX, locY, current, rotation, gameState, ClearedLines, Score, speed;
 	
 	startScreen();
@@ -169,6 +163,9 @@
 		putBlockOnMap(map, current.blocks[rotation], locY, locX, current.colour);
 	}
 	
+	////////////////////////////////////////////////////
+	// GAME FUNCTIONS 
+	////////////////////////////////////////////////////	
 	function checkLines() {
 		for(var row = 0; row < ny; row++) {
 			var removeLine = true;
@@ -202,11 +199,11 @@
 		rotation = 0;	
 		current =  randomizeNextPiece();
 		
-		if(speed > gameMaxSpeed) {
-			speed -= gameSpeedUp;
+		if(speed > GAMESPEED.MAXSPEED) {
+			speed -= GAMESPEED.SPEEDUP;
 		}
 		else {
-			speed = gameMaxSpeed;
+			speed = GAMESPEED.MAXSPEED;
 		}
 		
 		if(!checkBlockOnMap(map, current.blocks[rotation], locY, locX)) {
@@ -217,6 +214,7 @@
 	}
 	
 	function randomizeNextPiece() {
+		//need to work on the randomization
 		switch(Math.floor((Math.random() * 28) + 1)) {
 			case 1: case 8:  case 15: case 22: return i; break;
 			case 2: case 9:  case 16: case 23: return o; break;
@@ -235,7 +233,7 @@
 	function newGame() {
 		ClearedLines = 0;
 		Score = 0;
-		speed = gameStartingSpeed;
+		speed = GAMESPEED.STARTINGSPEED;
 		clearMap(map, nx, ny);
 		newBlock();
 		if(gameState != GAMESTATE.GAMEON) {
@@ -245,6 +243,7 @@
 	}
 	
 	function startScreen() {
+		initMap(map, ny, nx);
 		addExceptions();
 		animate();
 		gameState = GAMESTATE.STARTSCREEN;
@@ -276,6 +275,12 @@
 			else {
 				initRow(map ,line , nx);
 			}
+		}
+	}
+		
+	function initMap(map, ny, nx) {
+		for(var row=0; row < ny ; row++) {
+			initRow(map ,row , nx);
 		}
 	}
 	
