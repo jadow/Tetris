@@ -40,8 +40,8 @@
 	////////////////////////////////////////////////////
 	var s = { blocks : [0xC600, 0x4C80, 0xC600, 0x4C80], colour : 'red'};
 	var z = { blocks : [0x6C00, 0x8C40, 0x6C00, 0x8C40], colour : 'orange'};
-	var l = { blocks : [0xC880, 0x08E0, 0x2260, 0xE200], colour : 'Cyan'};
-	var j = { blocks : [0x02E0, 0x6220, 0xE800, 0x88C0], colour : 'DarkSlateBlue'};
+	var l = { blocks : [0xC880, 0xE200, 0x2260, 0x08E0], colour : 'Cyan'};
+	var j = { blocks : [0x02E0, 0x88C0, 0xE800, 0x6220], colour : 'DarkSlateBlue'};
 	var t = { blocks : [0x4C40, 0x0E40, 0x4640, 0x4E00], colour : 'BurlyWood'};
 	var i = { blocks : [0x0F00, 0x4444, 0x00F0, 0x2222], colour : 'BlueViolet'};
 	var o = { blocks : [0x0CC0, 0x0CC0, 0x0CC0, 0x0CC0], colour : 'FireBrick'};
@@ -69,7 +69,7 @@
 	var map = new Array(ny); //[y][x]
 	
 	startScreen();
-
+	
 	////////////////////////////////////////////////////
 	// EXCEPTIONS 
 	////////////////////////////////////////////////////
@@ -83,19 +83,19 @@
 	function keydown(event) {
 		if(gameState == GAMESTATE.GAMEON) {
 			if(event.keyCode == KEY.LEFT ) {
-				moveLeft();
+				moveHorizontal(-1);
 			}
 			else if(event.keyCode == KEY.RIGHT ) {
-				moveRight();
+				moveHorizontal(1);
 			}
 			else if(event.keyCode == KEY.UP ) {
-				rotateLeft();
+				rotate(1);			
 			}
 			else if(event.keyCode == KEY.DOWN ) {
-
+				shiftDown();		
 			}
 			else if(event.keyCode == KEY.SPACE ) {
-
+				dropdown();
 			}
 		}
 		
@@ -125,6 +125,7 @@
 	}
 	
 	function moveVertical(direction) {
+		var success = false;		
 		blockOnMap(map, currentBlock.blocks[currentRotation], locY, locX, unSetBlock);
 		if(blockOnMap(map, currentBlock.blocks[currentRotation], locY + direction, locX, checkBlock)) {
 			locY += direction;
@@ -135,31 +136,25 @@
 	}
 	
 	function rotate(rotatation) {
-		blockOnMap(map, current.blocks[currentRotation], locY, locX, unSetBlock);
+		blockOnMap(map, currentBlock.blocks[currentRotation], locY, locX, unSetBlock);
 		var nextRotation = checkRotation(currentRotation + rotatation);
-		if(blockOnMap(map, current.blocks[nextRotation], locY, locX, checkBlock)) {
+		if(blockOnMap(map, currentBlock.blocks[nextRotation], locY, locX, checkBlock)) {
 			currentRotation = nextRotation;
 		}		
-		blockOnMap(map, current.blocks[currentRotation], locY, locX, setBlock);
+		blockOnMap(map, currentBlock.blocks[currentRotation], locY, locX, setBlock);
 	}
 	
 	////////////////////////////////////////////////////
 	// GAME FUNCTIONS 
 	////////////////////////////////////////////////////	
 	function checkRotation(nextRotation) {
-		if(nextRotation > 3) {
-			return 0;
-		}
-		else if(nextRotation < 0) {
-			return 3;
-		}
+		if(nextRotation > 3) { return 0; }
+		else if(nextRotation < 0) { return 3; }
 		else return nextRotation;
 	}
 	
 	function timer() {
-		if(gameState == GAMESTATE.GAMEON) {
-			shiftDown();
-		}	
+		if(gameState == GAMESTATE.GAMEON) { shiftDown(); }	
 		window.setTimeout(function(){ timer() }, speed);	
 	}
 	
@@ -178,16 +173,16 @@
 	
 	function checkLines() {
 		for(var row = 0; row < ny; row++) {
-			var removeLine = true;
+			var clear = true;
 			for(var column =0; column < nx; column++) {
 				if(!map[row][column].occupied) {
-					removeLine = false
+					clear = false;
 				}
-			}
-			if(removeLine == true) {
-				clearLine(map,ny ,row--, 1);
+			}				
+			if(clear) {
+				clearLine(map, ny, nx, row--, 1);
 				ClearedLines++;
-			}
+			}	
 		}
 		newBlock();
 	}
@@ -230,8 +225,10 @@
 		addExceptions();
 		animate();
 		timer();
+		speed = GAMESPEED.STARTINGSPEED;
 		gameState = GAMESTATE.STARTSCREEN;
 		
+		/*
 		putBlockOnMap(map, o.blocks[0], -2,  0, o.colour);
 		putBlockOnMap(map, l.blocks[3], -1,  3, l.colour);
 		putBlockOnMap(map, j.blocks[2], -1,  0, j.colour);
@@ -241,6 +238,7 @@
 		putBlockOnMap(map, z.blocks[1], -2,  4, z.colour);	
 		putBlockOnMap(map, i.blocks[0],  0,  7, i.colour);
 		putBlockOnMap(map, o.blocks[0],  1, -1, o.colour);
+		*/
 	}
 
 	function newGame() {
@@ -248,7 +246,7 @@
 		clearMap(map, ny, nx);
 		speed = GAMESPEED.STARTINGSPEED;
 		
-		clearMap(map, nx, ny);
+		
 		newBlock();
 		gameState = GAMESTATE.GAMEON;
 	}
@@ -269,12 +267,7 @@
 	
 	function clearLine(map,ny ,nx ,y, n) {
 		for(var line = y; line < ny; line++) {
-			if(line + n < ny) {
-				map[line] = map[line+n];
-			}
-			else {
-				initRow(map ,line , nx);
-			}
+			line + n < ny ?	map[line] = map[line+n] : initRow(map ,line , nx);
 		}
 	}
 		
@@ -292,12 +285,14 @@
 		else if(map[row][column].occupied) {
 			return false;	
 		}		
-		else return true;
+		else {
+			return true;
+		}
 	}
 	
 	function setBlock(row, column) {
-		map[y+row][x+column].occupied = true;
-		map[y+row][x+column].colour = currentBlock.colour;
+		map[row][column].occupied = true;
+		map[row][column].colour = currentBlock.colour;
 	}
 	
 	function unSetBlock(row, column) {
@@ -306,11 +301,11 @@
 	} 
 	
 	function blockOnMap(map, block, y, x, fn) {
-		var row = 3, column = 0;
+		var row = 3, column = 0, status = true;
 		for(var mask = 0x8000;  mask > 0;  mask = mask >> 1 )
 		{
 			if(block & mask) {
-				fn(y+row, x+column);
+				status &= fn(y+row, x+column);
 			}
 			
 			if(--row == -1) {
@@ -318,6 +313,7 @@
 				column++;
 			}
 		}
+		return status;
 	}
 	
 	////////////////////////////////////////////////////
